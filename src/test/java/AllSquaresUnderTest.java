@@ -13,4 +13,10 @@ public class AllSquaresUnderTest {
         String expectedOutput = "4 9 16";
         assertThat(AllSquaresUnder.findSquares(2,24)).isEqualTo(expectedOutput);
     }
+
+    @Test
+    void secondTest() {
+        String expectedOutput = "1 4 9 16 25 36 49 64 81 100";
+        assertThat(AllSquaresUnder.findSquares(1,100)).isEqualTo(expectedOutput);
+    }
 }
