@@ -1,0 +1,88 @@
+plugins {
+    id 'org.springframework.boot' version '2.2.6.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+    id 'java'
+    id "io.freefair.lombok" version "5.0.0-rc6"
+    id 'jacoco'
+}
+
+group = 'com.cardinalhealth'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+repositories {
+    mavenLocal()
+    maven { url "https://nexus.cardinalhealth.net/repository/optifreight-next-maven-release/" }
+    if (System.getenv('USE_MAVEN_CENTRAL') == "true") {
+        mavenCentral()
+    } else {
+        maven {
+            url "https://nexus.cardinalhealth.net/repository/maven/"
+        }
+    }
+}
+
+ext {
+    set('springCloudVersion', "Hoxton.SR3")
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-integration'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
+    implementation 'org.springframework.cloud:spring-cloud-starter-zipkin'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.3'
+    implementation 'com.nimbusds:lang-tag:1.5'
+
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
+    testCompile 'org.assertj:assertj-core:3.15.0'
+    testImplementation group: 'org.meanbean', name: 'meanbean', version: '2.0.3'
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+
+test {
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat = 'full'
+    }
+    useJUnitPlatform {
+        excludeTags 'integration'
+    }
+    finalizedBy jacocoTestReport
+}
+
+task integrationTest(type: Test) {
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat = 'full'
+    }
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.5"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.destination file("${buildDir}/jacocoHtml")
+    }
+}
+check.dependsOn integrationTest
